@@ -35,7 +35,7 @@ def download(url,user_agent='wswp',proxy=None,num_retries=2,timout=5):
 def get_links(html):
     if html:
         page_regex=re.compile('<a[^>+href=["\']',re.IGNORECASE)
-        return page_regex.findall(html.decode)
+        return page_regex.findall(html.decode('utf-8'))
     else:
         return ""
 
@@ -58,7 +58,7 @@ def link_crawler(seed_url,link_regex,max_depth=2,scrape_callback=None):
         url=crawler_queue.pop()
         html=download(url)
         depth=seens[url]
-        print("深度："depth)
+        print("深度：",depth)
 
         for link in get_links(html):
             if depth != max_depth and re.search(link_regex,link):
@@ -74,3 +74,21 @@ def link_crawler(seed_url,link_regex,max_depth=2,scrape_callback=None):
 
 class ScrapeCallback:
     def __init__(self):
+        self.writer=csv.writer(open('counters.csv','w'))
+        self.fields=('name','year','score')
+        self.writer.writerow(self.fields)
+    def __call__(self, url, html):
+        csslist=['span[property="v:itemreviewed"]','span.year','strong[property="v:average"]']
+        try:
+            tree=lxml.html.fromstring(html)
+            row = [tree.cssselect('{0}'.format(field))[0].text for field in csslist]  # dont know
+            self.writer.writerow(row)
+            print(url,row)
+        except Exception as e:
+            print("Callback error as:",e)
+
+if __name__ == "__main__":
+    seed_url="https://movie.douban.com/"
+    link_regex='(/subject/[\d]+/)' #子链接规则
+
+    #link_crawler(seed_url,link_regex,max_depth=2,scrape_callback=ScrapeCallback())

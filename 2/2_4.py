@@ -34,7 +34,7 @@ def download(url,user_agent='wswp',proxy=None,num_retries=2,timout=5):
 #2、获取网页中的链接地址
 def get_links(html):
     if html:
-        page_regex=re.compile('<a[^>+href=["\']',re.IGNORECASE)
+        page_regex=re.compile('<a[^>]+href=["\'](.*?)["\']',re.IGNORECASE)
         return page_regex.findall(html.decode('utf-8'))
     else:
         return ""
